@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useBookingAction } from '../../hooks/useBookings';
 import {
@@ -10,6 +11,7 @@ import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { ReviewForm } from '../review/ReviewForm';
 
 const statusClasses: Record<BookingStatus, string> = {
   PENDING: 'bg-amber-100 text-amber-800',
@@ -32,9 +34,12 @@ function formatDate(iso: string): string {
 export function BookingCard({ booking }: { booking: BookingResponse }) {
   const { user } = useAuth();
   const { mutate, isPending, error } = useBookingAction();
+  const [reviewed, setReviewed] = useState(false);
 
   const isHousehold = user?.role === 'HOUSEHOLD';
   const isHelper = user?.role === 'HELPER';
+
+  const canReview = isHousehold && booking.status === 'COMPLETED';
 
   const otherParty =
     isHousehold && booking.helper
@@ -132,6 +137,20 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
           )}
         </div>
       )}
+
+      {canReview &&
+        (reviewed ? (
+          <p className="mt-4 rounded-xl bg-primary-100 px-3 py-2 text-sm text-primary-700">
+            Thanks! Your review has been submitted.
+          </p>
+        ) : (
+          <div className="mt-4">
+            <ReviewForm
+              bookingId={booking.id}
+              onSubmitted={() => setReviewed(true)}
+            />
+          </div>
+        ))}
     </Card>
   );
 }
