@@ -1,0 +1,175 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  HOUSEHOLD
+  HELPER
+  ADMIN
+}
+
+enum ServiceType {
+  MAID
+  BABYSITTER
+  NANNY
+}
+
+enum PlanType {
+  HOURLY
+  MONTHLY
+  YEARLY
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  firebaseUid         String    @unique
+  email               String    @unique
+  role                Role      @default(HOUSEHOLD)
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  householdProfile    HouseholdProfile?
+  helperProfile       HelperProfile?
+
+  @@index([firebaseUid])
+}
+
+model HouseholdProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName  String
+  phone     String
+  address   String
+  city      String
+  avatarUrl String?
+
+  bookings  Booking[]
+  reviews   Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HelperProfile {
+  id                  String              @id @default(uuid())
+  userId              String              @unique
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName            String
+  phone               String
+  serviceType         ServiceType
+  experienceYears     Int                 @default(0)
+  bio                 String?
+  city                String
+  avatarUrl           String?
+  availability        Json                // e.g. { "mon": ["09:00-13:00"], "tue": [...] }
+
+  verificationStatus  VerificationStatus  @default(PENDING)
+  documents           VerificationDocument[]
+
+  ratingAvg           Float               @default(0)
+  ratingCount         Int                 @default(0)
+
+  servicePlans        ServicePlan[]
+  bookings            Booking[]
+  reviews             Review[]
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([serviceType, city])
+  @@index([verificationStatus])
+}
+
+model VerificationDocument {
+  id         String              @id @default(uuid())
+  helperId   String
+  helper     HelperProfile       @relation(fields: [helperId], references: [id], onDelete: Cascade)
+  docType    String              // e.g. "ID_PROOF", "ADDRESS_PROOF"
+  url        String              // Cloudinary secure_url
+  status     VerificationStatus  @default(PENDING)
+  createdAt  DateTime            @default(now())
+}
+
+model ServicePlan {
+  id          String        @id @default(uuid())
+  helperId    String
+  helper      HelperProfile @relation(fields: [helperId], references: [id], onDelete: Cascade)
+  planType    PlanType
+  price       Decimal       @db.Decimal(10, 2)
+  description String?
+  isActive    Boolean       @default(true)
+
+  bookings    Booking[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([helperId])
+}
+
+model Booking {
+  id             String           @id @default(uuid())
+  householdId    String
+  household      HouseholdProfile @relation(fields: [householdId], references: [id])
+  helperId       String
+  helper         HelperProfile    @relation(fields: [helperId], references: [id])
+  servicePlanId  String
+  servicePlan    ServicePlan      @relation(fields: [servicePlanId], references: [id])
+
+  status         BookingStatus    @default(PENDING)
+  scheduledDate  DateTime
+  startTime      String           // "09:00"
+  endTime        String           // "13:00"
+  notes          String?
+
+  review         Review?
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([householdId])
+  @@index([helperId])
+  @@index([status])
+}
+
+model Review {
+  id          String           @id @default(uuid())
+  bookingId   String           @unique
+  booking     Booking          @relation(fields: [bookingId], references: [id])
+  householdId String
+  household   HouseholdProfile @relation(fields: [householdId], references: [id])
+  helperId    String
+  helper      HelperProfile    @relation(fields: [helperId], references: [id])
+
+  rating      Int              // 1-5
+  comment     String?
+
+  createdAt   DateTime         @default(now())
+
+  @@index([helperId])
+}
