@@ -1,8 +1,10 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import {
+  helperProfilePublicSchema,
   searchHelpersQuerySchema,
   searchHelpersResponseSchema,
+  type HelperProfilePublic,
   type SearchHelpersQuery,
   type SearchHelpersResponse,
 } from '../schemas/helper.schema';
@@ -23,5 +25,17 @@ export function useHelperSearch(filters: SearchHelpersQuery) {
     },
     staleTime: 60_000,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useHelperProfile(helperId: string) {
+  return useQuery<HelperProfilePublic>({
+    queryKey: ['helpers', 'detail', helperId],
+    queryFn: async () => {
+      const data = await api.get<unknown>(`/helpers/${helperId}`);
+      return helperProfilePublicSchema.parse(data);
+    },
+    enabled: Boolean(helperId),
+    staleTime: 300_000,
   });
 }
