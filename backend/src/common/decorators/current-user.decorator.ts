@@ -1,8 +1,10 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { RequestWithUser } from '../guards/firebase-auth.guard';
+import { FirebaseUser, RequestWithUser } from '../guards/firebase-auth.guard';
 
+// Safe only on routes protected by FirebaseAuthGuard (all non-@Public routes).
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext) => {
-    return ctx.switchToHttp().getRequest<RequestWithUser>().user;
+  (_data: unknown, ctx: ExecutionContext): FirebaseUser => {
+    return ctx.switchToHttp().getRequest<RequestWithUser>()
+      .user as FirebaseUser;
   },
 );

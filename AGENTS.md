@@ -92,10 +92,10 @@ Docs: Swagger/OpenAPI (`@nestjs/swagger`, generated from Zod DTOs). Tests: none 
 1. Frontend Firebase sign-in (Google or email/password) → get `idToken`.
 2. `POST /auth/sync` with `Authorization: Bearer <idToken>`.
 3. Backend verifies token (Firebase Admin), upserts `User` by `firebaseUid` (default
-   `role: HOUSEHOLD`, `onboardingCompleted: false`), returns `{ uid, role, onboardingCompleted }`.
+   `role: HOUSEHOLD`, `onboardingCompleted: false`), returns `{ id, role, onboardingCompleted }`.
 4. `onboardingCompleted === true` → Home, else → Onboarding.
-5. Frontend mirrors `uid` to `localStorage` for UX only — **never trusted by the backend**;
-   every authenticated request still carries the real ID token.
+5. Frontend mirrors the returned `id` to `localStorage` for UX only — **never trusted by the
+   backend**; every authenticated request still carries the real ID token.
 6. No custom JWT, no refresh-token dance, no sessions table. Firebase is the only identity provider.
 
 ## 5. Non-negotiable rules

@@ -72,8 +72,8 @@ Firebase Admin SDK is initialized once in `config/firebase.config.ts` from these
 `FirebaseAuthGuard` reads `Authorization: Bearer <idToken>`, calls
 `admin.auth().verifyIdToken(token)`, attaches `{ firebaseUid, email }` to `request.user`.
 `RolesGuard` (paired with `@Roles(Role.HELPER)` decorator) then loads the `User` row (cached,
-see §5) and checks `role`. Both guards are applied globally except on `/auth/sync` and
-`/helpers` GET search/detail routes, which are public reads.
+see §5) and checks `role`. Both guards are applied globally; `/auth/sync` requires a valid
+token but no role, and `/helpers` GET search/detail routes are public reads.
 
 ---
 
