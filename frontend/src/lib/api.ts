@@ -43,8 +43,16 @@ async function request<T>(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   body?: unknown,
   tokenOverride?: string | null,
+  params?: Record<string, string | number | undefined>,
 ): Promise<T> {
   const token = tokenOverride === undefined ? await getAuthToken() : tokenOverride;
+
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined) query.set(key, String(value));
+  }
+  const queryString = query.toString();
+  const url = `${normalizePath(path)}${queryString ? `?${queryString}` : ''}`;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -52,7 +60,7 @@ async function request<T>(
 
   let response: Response;
   try {
-    response = await fetch(normalizePath(path), {
+    response = await fetch(url, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -78,8 +86,11 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(path: string, tokenOverride?: string | null) =>
-    request<T>(path, 'GET', undefined, tokenOverride),
+  get: <T>(
+    path: string,
+    params?: Record<string, string | number | undefined>,
+    tokenOverride?: string | null,
+  ) => request<T>(path, 'GET', undefined, tokenOverride, params),
   post: <T>(path: string, body?: unknown, tokenOverride?: string | null) =>
     request<T>(path, 'POST', body, tokenOverride),
   patch: <T>(path: string, body?: unknown, tokenOverride?: string | null) =>
