@@ -42,8 +42,9 @@ async function request<T>(
   path: string,
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   body?: unknown,
+  tokenOverride?: string | null,
 ): Promise<T> {
-  const token = await getAuthToken();
+  const token = tokenOverride === undefined ? await getAuthToken() : tokenOverride;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -77,8 +78,12 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>(path, 'GET'),
-  post: <T>(path: string, body?: unknown) => request<T>(path, 'POST', body),
-  patch: <T>(path: string, body?: unknown) => request<T>(path, 'PATCH', body),
-  del: <T>(path: string) => request<T>(path, 'DELETE'),
+  get: <T>(path: string, tokenOverride?: string | null) =>
+    request<T>(path, 'GET', undefined, tokenOverride),
+  post: <T>(path: string, body?: unknown, tokenOverride?: string | null) =>
+    request<T>(path, 'POST', body, tokenOverride),
+  patch: <T>(path: string, body?: unknown, tokenOverride?: string | null) =>
+    request<T>(path, 'PATCH', body, tokenOverride),
+  del: <T>(path: string, tokenOverride?: string | null) =>
+    request<T>(path, 'DELETE', undefined, tokenOverride),
 };

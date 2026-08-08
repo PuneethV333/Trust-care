@@ -1,16 +1,47 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './components/layout/AuthProvider'
+import {
+  RequireAuth,
+  RequireGuest,
+  RequireOnboarding,
+} from './components/layout/guards'
+import HomePage from './pages/home'
+import OnboardingPage from './pages/onboarding'
+import SignInPage from './pages/sign-in'
+
 function App() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-3 p-8">
-      <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700">
-        Helper4U
-      </span>
-      <h1 className="text-2xl font-semibold text-neutral-800">
-        Trusted maid &amp; nanny services
-      </h1>
-      <p className="max-w-md text-center text-sm text-neutral-600">
-        Frontend foundation is in place — sign-in and onboarding arrive in the next phases.
-      </p>
-    </main>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/sign-in"
+            element={
+              <RequireGuest>
+                <SignInPage />
+              </RequireGuest>
+            }
+          />
+          <Route
+            path="/onboarding"
+            element={
+              <RequireOnboarding>
+                <OnboardingPage />
+              </RequireOnboarding>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <HomePage />
+              </RequireAuth>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
 
