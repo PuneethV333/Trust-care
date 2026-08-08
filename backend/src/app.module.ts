@@ -12,6 +12,7 @@ import { HelpersModule } from './modules/helpers/helpers.module';
 import { ServicePlansModule } from './modules/service-plans/service-plans.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
@@ -26,6 +27,7 @@ import { RedisModule } from './redis/redis.module';
     ServicePlansModule,
     BookingsModule,
     ReviewsModule,
+    UploadsModule,
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 100 }]),
   ],
   controllers: [AppController],
