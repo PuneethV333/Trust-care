@@ -21,6 +21,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { FirebaseUser } from '../../common/guards/firebase-auth.guard';
 import {
+  HelperEarningsDto,
   HelperProfileDto,
   HelperProfilePublicDto,
   SearchHelpersResponseDto,
@@ -114,6 +115,21 @@ export class HelpersController {
       user.firebaseUid,
       dto.availability,
     );
+  }
+
+  @Get('me/earnings')
+  @Roles(Role.HELPER)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Get my earnings from completed bookings' })
+  @ApiResponse({ status: 200, type: HelperEarningsDto })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase token',
+  })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  @ApiResponse({ status: 404, description: 'Helper profile not found' })
+  getEarnings(@CurrentUser() user: FirebaseUser): Promise<HelperEarningsDto> {
+    return this.helpersService.getEarnings(user.firebaseUid);
   }
 
   @Get()

@@ -1,12 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import type { Prisma } from '../../../generated/prisma/client';
-import { Role, VerificationStatus } from '../../../generated/prisma/enums';
+import {
+  Role,
+  BookingStatus,
+  VerificationStatus,
+} from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import {
   Availability,
   documentSchema,
+  HelperEarnings,
+  helperEarningsSchema,
   HelperProfile,
   HelperProfilePublic,
   helperProfilePublicSchema,
@@ -25,6 +31,7 @@ import {
 
 const HELPER_ME_TTL = 60;
 const HELPER_PROFILE_TTL = 300;
+const EARNINGS_TTL = 60;
 const SEARCH_TTL = 120;
 const SEARCH_PER_PAGE = 10;
 
@@ -316,5 +323,44 @@ export class HelpersService {
       ...doc,
       createdAt: doc.createdAt.toISOString(),
     });
+  }
+
+  async getEarnings(firebaseUid: string): Promise<HelperEarnings> {
+    const cacheKey = `helper:earnings:${firebaseUid}`;
+    const cached = await this.redis.get<HelperEarnings>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const helper = await this.findByFirebaseUid(firebaseUid);
+    const bookings = await this.prisma.booking.findMany({
+      where: { helperId: helper.id, status: BookingStatus.COMPLETED },
+      select: { scheduledDate: true, servicePlan: { select: { price: true } } },
+    });
+
+    const byMonth = new Map<string, { totalEarned: number; count: number }>();
+    let totalEarned = 0;
+    for (const booking of bookings) {
+      const price = Number(booking.servicePlan.price);
+      totalEarned += price;
+      const month = `${booking.scheduledDate.getUTCFullYear()}-${String(
+        booking.scheduledDate.getUTCMonth() + 1,
+      ).padStart(2, '0')}`;
+      const entry = byMonth.get(month) ?? { totalEarned: 0, count: 0 };
+      entry.totalEarned += price;
+      entry.count += 1;
+      byMonth.set(month, entry);
+    }
+
+    const result = helperEarningsSchema.parse({
+      totalEarned,
+      completedBookings: bookings.length,
+      monthly: [...byMonth.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, value]) => ({ month, ...value })),
+    });
+
+    await this.redis.set(cacheKey, result, EARNINGS_TTL);
+    return result;
   }
 }

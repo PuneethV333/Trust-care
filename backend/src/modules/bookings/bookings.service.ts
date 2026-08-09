@@ -265,6 +265,14 @@ export class BookingsService {
       current.helper?.user?.firebaseUid,
       current.household?.user?.firebaseUid,
     );
+    if (
+      target === BookingStatus.COMPLETED &&
+      current.helper?.user?.firebaseUid
+    ) {
+      await this.redis.del(
+        `helper:earnings:${current.helper.user.firebaseUid}`,
+      );
+    }
     return this.toBooking(updated);
   }
 

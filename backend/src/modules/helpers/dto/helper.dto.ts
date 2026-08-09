@@ -70,12 +70,25 @@ export const searchHelpersResponseSchema = z.object({
   totalPages: z.number(),
 });
 
+export const monthlyEarningsSchema = z.object({
+  month: z.string(),
+  totalEarned: z.number(),
+  count: z.number(),
+});
+
+export const helperEarningsSchema = z.object({
+  totalEarned: z.number(),
+  completedBookings: z.number(),
+  monthly: z.array(monthlyEarningsSchema),
+});
+
 export type HelperProfile = z.infer<typeof helperProfileSchema>;
 export type HelperProfilePublic = z.infer<typeof helperProfilePublicSchema>;
 export type HelperSearchItem = z.infer<typeof helperSearchItemSchema>;
 export type SearchHelpersResponse = z.infer<typeof searchHelpersResponseSchema>;
 export type Availability = z.infer<typeof availabilitySchema>;
 export type VerificationDocument = z.infer<typeof documentSchema>;
+export type HelperEarnings = z.infer<typeof helperEarningsSchema>;
 
 export class HelperProfileDto extends createZodDto(helperProfileSchema) {}
 export class HelperProfilePublicDto extends createZodDto(
@@ -85,3 +98,4 @@ export class SearchHelpersResponseDto extends createZodDto(
   searchHelpersResponseSchema,
 ) {}
 export class VerificationDocumentDto extends createZodDto(documentSchema) {}
+export class HelperEarningsDto extends createZodDto(helperEarningsSchema) {}
