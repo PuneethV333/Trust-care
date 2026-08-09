@@ -38,3 +38,11 @@ export function RequireGuest({ children }: { children: ReactNode }) {
   }
   return children;
 }
+
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <FullPageLoading />;
+  if (!user) return <Navigate to="/sign-in" replace />;
+  if (user.role !== 'ADMIN') return <Navigate to="/" replace />;
+  return children;
+}

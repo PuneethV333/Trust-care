@@ -38,6 +38,7 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
 
   const isHousehold = user?.role === 'HOUSEHOLD';
   const isHelper = user?.role === 'HELPER';
+  const isAdmin = user?.role === 'ADMIN';
 
   const canReview = isHousehold && booking.status === 'COMPLETED';
 
@@ -46,14 +47,20 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
       ? { name: booking.helper.fullName, avatarUrl: booking.helper.avatarUrl }
       : isHelper && booking.household
         ? { name: booking.household.fullName, avatarUrl: null }
-        : null;
+        : isAdmin && booking.household
+          ? {
+              name: `${booking.helper?.fullName ?? 'Helper'} & ${booking.household.fullName}`,
+              avatarUrl: null,
+            }
+          : null;
   const partnerName = otherParty;
 
   const canCancel =
     isHousehold && (booking.status === 'ACCEPTED' || booking.status === 'ONGOING');
   const canRespond = isHelper && booking.status === 'PENDING';
   const canComplete =
-    isHelper && (booking.status === 'ACCEPTED' || booking.status === 'ONGOING');
+    (isHelper || isAdmin) &&
+    (booking.status === 'ACCEPTED' || booking.status === 'ONGOING');
 
   const act = (action: 'accept' | 'reject' | 'cancel' | 'complete') =>
     mutate({ id: booking.id, action });

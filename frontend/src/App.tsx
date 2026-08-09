@@ -2,10 +2,12 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './components/layout/AuthProvider'
 import { AppShell } from './components/layout/AppShell'
 import {
+  RequireAdmin,
   RequireAuth,
   RequireGuest,
   RequireOnboarding,
 } from './components/layout/guards'
+import AdminPage from './pages/admin'
 import BookingsPage from './pages/bookings'
 import HelperDetailPage from './pages/helper-detail'
 import HomePage from './pages/home'
@@ -48,6 +50,14 @@ function App() {
             <Route path="helpers/:helperId" element={<HelperDetailPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route
+              path="admin"
+              element={
+                <RequireAdmin>
+                  <AdminPage />
+                </RequireAdmin>
+              }
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

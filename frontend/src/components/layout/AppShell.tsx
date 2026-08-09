@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   HomeIcon,
   SearchIcon,
+  ShieldIcon,
   UserIcon,
 } from '../ui/icons';
 
@@ -15,13 +16,6 @@ interface Tab {
   label: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
-
-const tabs: Tab[] = [
-  { to: '/', label: 'Home', icon: HomeIcon },
-  { to: '/search', label: 'Search', icon: SearchIcon },
-  { to: '/bookings', label: 'Bookings', icon: CalendarIcon },
-  { to: '/profile', label: 'Profile', icon: UserIcon },
-];
 
 function tabClass(isActive: boolean) {
   return [
@@ -32,6 +26,16 @@ function tabClass(isActive: boolean) {
 
 export function AppShell() {
   const { user, signOut } = useAuth();
+
+  const tabs: Tab[] = [
+    { to: '/', label: 'Home', icon: HomeIcon },
+    { to: '/search', label: 'Search', icon: SearchIcon },
+    { to: '/bookings', label: 'Bookings', icon: CalendarIcon },
+    { to: '/profile', label: 'Profile', icon: UserIcon },
+    ...(user?.role === 'ADMIN'
+      ? [{ to: '/admin', label: 'Admin', icon: ShieldIcon }]
+      : []),
+  ];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -77,7 +81,10 @@ export function AppShell() {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white md:hidden">
-        <div className="grid grid-cols-4">
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        >
           {tabs.map((tab) => (
             <NavLink
               key={tab.to}
