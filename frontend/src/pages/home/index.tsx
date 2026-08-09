@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { useAuth } from '../../hooks/useAuth';
+import { useCurrentUser } from '../../hooks/useProfile';
 import { SERVICE_TYPE_LABELS, SERVICE_TYPE_VALUES } from '../../types';
 import { SearchIcon } from '../../components/ui/icons';
 
@@ -44,19 +46,59 @@ function HouseholdHome() {
 }
 
 function HelperHome() {
-  return (
-    <div className="space-y-6">
+  const query = useCurrentUser();
+
+  if (query.isLoading) {
+    return (
       <Card className="p-6">
-        <h1 className="text-2xl font-semibold text-neutral-800">Welcome back</h1>
-        <p className="mt-2 text-neutral-600">
-          Your profile is live. New booking requests from households will show up on
-          the bookings tab.
-        </p>
-        <Link to="/profile" className="inline-block">
-          <Button className="mt-4">View my profile</Button>
-        </Link>
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="mt-3 h-4 w-full" />
+        <Skeleton className="mt-2 h-4 w-2/3" />
       </Card>
-    </div>
+    );
+  }
+
+  if (query.isError || !query.data?.helperProfile) {
+    return (
+      <Card className="flex flex-col items-center gap-3 p-8 text-center">
+        <p className="text-sm text-neutral-600">
+          We couldn&apos;t load your profile right now.
+        </p>
+        <Button type="button" variant="secondary" onClick={() => void query.refetch()}>
+          Try again
+        </Button>
+      </Card>
+    );
+  }
+
+  const copy = {
+    VERIFIED: {
+      className: 'bg-primary-600 text-white',
+      title: 'Your profile is live',
+      kicker: 'Households can now find, review, and book you.',
+    },
+    PENDING: {
+      className: 'bg-accent-500 text-white',
+      title: 'Profile under review',
+      kicker: 'Our team is verifying your profile. You can receive bookings once it is approved.',
+    },
+    REJECTED: {
+      className: 'bg-danger text-white',
+      title: 'Profile needs attention',
+      kicker: 'Your profile was not approved. Update your details to submit it for review again.',
+    },
+  }[query.data.helperProfile.verificationStatus];
+
+  return (
+    <Card className={`p-6 ${copy.className}`}>
+      <h1 className="text-2xl font-semibold">{copy.title}</h1>
+      <p className="mt-2 opacity-90">{copy.kicker}</p>
+      <Link to="/profile" className="inline-block">
+        <Button className="mt-4 bg-white text-primary-700 hover:bg-primary-50">
+          View my profile
+        </Button>
+      </Link>
+    </Card>
   );
 }
 

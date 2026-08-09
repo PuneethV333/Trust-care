@@ -126,3 +126,4 @@ export type VerificationDocument = z.infer<typeof documentSchema>;
 export type SearchHelpersQuery = z.infer<typeof searchHelpersQuerySchema>;
 export type ServicePlan = z.infer<typeof servicePlanSchema>;
 export type CreateServicePlanInput = z.infer<typeof createServicePlanInputSchema>;
+export type HelperUpdateInput = z.infer<typeof updateHelperProfileInputSchema>;
