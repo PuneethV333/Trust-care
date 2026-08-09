@@ -80,7 +80,8 @@ function HelperHome() {
     PENDING: {
       className: 'bg-accent-500 text-white',
       title: 'Profile under review',
-      kicker: 'Our team is verifying your profile. You can receive bookings once it is approved.',
+      kicker:
+        'Our team is verifying your profile. Upload your ID and address documents from the profile page to speed this up.',
     },
     REJECTED: {
       className: 'bg-danger text-white',

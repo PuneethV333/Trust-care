@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import { VerificationDocumentsSection } from '../../components/helper/VerificationDocumentsSection';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -379,7 +380,12 @@ export default function ProfilePage() {
       </Card>
 
       {user.role === 'HOUSEHOLD' && <HouseholdSection />}
-      {user.role === 'HELPER' && <HelperSection />}
+      {user.role === 'HELPER' && (
+        <>
+          <HelperSection />
+          <VerificationDocumentsSection />
+        </>
+      )}
       {user.role === 'ADMIN' && !accountQuery.isLoading && <AdminSection />}
 
       <Card className="p-6 text-center">
