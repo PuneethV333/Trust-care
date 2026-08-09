@@ -9,8 +9,10 @@ import {
   type HouseholdProfileInput,
 } from '../schemas/user.schema';
 import {
+  helperEarningsSchema,
   helperProfileSchema,
   updateHelperProfileInputSchema,
+  type HelperEarnings,
   type HelperProfile,
   type HelperUpdateInput,
 } from '../schemas/helper.schema';
@@ -48,6 +50,18 @@ export function useMyHelperProfile(enabled = true) {
     queryFn: async () => {
       const data = await api.get<unknown>('/helpers/me');
       return helperProfileSchema.parse(data);
+    },
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useMyEarnings(enabled = true) {
+  return useQuery<HelperEarnings>({
+    queryKey: ['helpers', 'me', 'earnings'],
+    queryFn: async () => {
+      const data = await api.get<unknown>('/helpers/me/earnings');
+      return helperEarningsSchema.parse(data);
     },
     enabled,
     staleTime: 60_000,

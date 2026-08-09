@@ -4,6 +4,7 @@ import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { VerificationDocumentsSection } from '../../components/helper/VerificationDocumentsSection';
+import { EarningsCard } from '../../components/helper/EarningsCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -383,6 +384,7 @@ export default function ProfilePage() {
       {user.role === 'HELPER' && (
         <>
           <HelperSection />
+          <EarningsCard />
           <VerificationDocumentsSection />
         </>
       )}

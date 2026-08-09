@@ -69,6 +69,18 @@ export const searchHelpersResponseSchema = z.object({
   totalPages: z.number(),
 });
 
+export const monthlyEarningsSchema = z.object({
+  month: z.string(),
+  totalEarned: z.number(),
+  count: z.number(),
+});
+
+export const helperEarningsSchema = z.object({
+  totalEarned: z.number(),
+  completedBookings: z.number(),
+  monthly: z.array(monthlyEarningsSchema),
+});
+
 export const helperOnboardingInputSchema = z.object({
   fullName: z.string().trim().min(2),
   phone: z.string().trim().min(7),
@@ -123,6 +135,7 @@ export type HelperSearchItem = z.infer<typeof helperSearchItemSchema>;
 export type SearchHelpersResponse = z.infer<typeof searchHelpersResponseSchema>;
 export type Availability = z.infer<typeof availabilitySchema>;
 export type VerificationDocument = z.infer<typeof documentSchema>;
+export type HelperEarnings = z.infer<typeof helperEarningsSchema>;
 export type SearchHelpersQuery = z.infer<typeof searchHelpersQuerySchema>;
 export type ServicePlan = z.infer<typeof servicePlanSchema>;
 export type CreateServicePlanInput = z.infer<typeof createServicePlanInputSchema>;
