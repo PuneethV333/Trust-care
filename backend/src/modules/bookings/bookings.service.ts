@@ -5,7 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client';
-import { BookingStatus, Role } from '../../../generated/prisma/enums';
+import {
+  BookingStatus,
+  DisputeStatus,
+  Role,
+} from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import {
@@ -13,6 +17,7 @@ import {
   BookingResponse,
   CreateBookingDto,
 } from './dto/booking.dto';
+import { disputeSchema, Dispute } from './dto/dispute.dto';
 
 const BOOKINGS_CACHE_TTL = 30;
 
@@ -380,5 +385,69 @@ export class BookingsService {
       BookingStatus.COMPLETED,
       ownerCheck,
     );
+  }
+
+  async createDispute(
+    firebaseUid: string,
+    bookingId: string,
+    reason: string,
+  ): Promise<Dispute> {
+    const user = await this.prisma.user.findUnique({
+      where: { firebaseUid },
+      select: {
+        id: true,
+        householdProfile: { select: { id: true } },
+        helperProfile: { select: { id: true } },
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { id: true, householdId: true, helperId: true, status: true },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    const isHousehold = user.householdProfile?.id === booking.householdId;
+    const isHelper = user.helperProfile?.id === booking.helperId;
+    if (!isHousehold && !isHelper) {
+      throw new ForbiddenException('Not a participant of this booking');
+    }
+
+    if (
+      booking.status !== BookingStatus.COMPLETED &&
+      booking.status !== BookingStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        'Disputes can only be raised for completed or cancelled bookings',
+      );
+    }
+
+    const existing = await this.prisma.dispute.findFirst({
+      where: {
+        bookingId,
+        status: { in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW] },
+      },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new BadRequestException(
+        'A dispute is already open for this booking',
+      );
+    }
+
+    const dispute = await this.prisma.dispute.create({
+      data: { bookingId, raisedById: user.id, reason },
+    });
+
+    return disputeSchema.parse({
+      ...dispute,
+      createdAt: dispute.createdAt.toISOString(),
+      updatedAt: dispute.updatedAt.toISOString(),
+    });
   }
 }

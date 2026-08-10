@@ -7,6 +7,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import type { FirebaseUser } from '../../common/guards/firebase-auth.guard';
 import { BookingsService } from './bookings.service';
 import { BookingDto, CreateBookingDto } from './dto/booking.dto';
+import { CreateDisputeDto, DisputeDto } from './dto/dispute.dto';
 
 @ApiTags('bookings')
 @Controller('bookings')
@@ -180,5 +181,38 @@ export class BookingsController {
     @CurrentUser() user: FirebaseUser,
   ): Promise<BookingDto> {
     return this.bookingsService.completeBooking(user.firebaseUid, id);
+  }
+
+  @Post(':id/dispute')
+  @Roles(Role.HOUSEHOLD, Role.HELPER)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Report an issue for a completed or cancelled booking',
+  })
+  @ApiBody({ type: CreateDisputeDto })
+  @ApiResponse({
+    status: 201,
+    type: DisputeDto,
+    description: 'The created dispute',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid booking state or dispute already open',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role or not a participant',
+  })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  reportDispute(
+    @Param('id') id: string,
+    @CurrentUser() user: FirebaseUser,
+    @Body() dto: CreateDisputeDto,
+  ): Promise<DisputeDto> {
+    return this.bookingsService.createDispute(user.firebaseUid, id, dto.reason);
   }
 }

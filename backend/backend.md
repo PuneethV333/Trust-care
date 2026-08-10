@@ -138,6 +138,7 @@ utility rather than tracking individual keys).
 | PATCH | `/bookings/:id/reject` | `rejectBooking` | Role:HELPER (owner check) | invalidates both `bookings:me:*` involved | 20 / 60s |
 | PATCH | `/bookings/:id/cancel` | `cancelBooking` | Role:HOUSEHOLD (owner check) | invalidates both `bookings:me:*` involved | 20 / 60s |
 | PATCH | `/bookings/:id/complete` | `completeBooking` | Role:HELPER or Role:ADMIN | invalidates both `bookings:me:*` involved | 20 / 60s |
+| POST | `/bookings/:id/dispute` | `createDispute` (participant on a completed/cancelled booking, one open dispute per booking) | Role:HELPER or Role:HOUSEHOLD | — | 10 / 60s |
 
 Status transitions are enforced in the service layer as a strict state machine:
 `PENDING → ACCEPTED|REJECTED`, `ACCEPTED → ONGOING|CANCELLED`, `ONGOING → COMPLETED|CANCELLED`.
@@ -170,6 +171,8 @@ Frontend uploads directly to Cloudinary with this signature; backend never proxi
 | PATCH | `/admin/helpers/:id/reject` | `rejectHelper` | Role:ADMIN | invalidates `helper:profile:<id>`, `helpers:search:*` | 30 / 60s |
 | GET | `/admin/users` | `listUsers` (paginated) | Role:ADMIN | — | 50 / 60s |
 | GET | `/admin/bookings` | `listAllBookings` (paginated, filterable by status) | Role:ADMIN | — | 50 / 60s |
+| GET | `/admin/disputes` | `listDisputes` (paginated, filterable by status) | Role:ADMIN | — | 50 / 60s |
+| PATCH | `/admin/disputes/:id/resolve` | `resolveDispute` (sets status + resolution note) | Role:ADMIN | — | 30 / 60s |
 | GET | `/admin/analytics` | `getPlatformAnalytics` (counts: households, verified helpers, bookings by status, avg rating) | Role:ADMIN | `admin:analytics` TTL 600s | 30 / 60s |
 
 ---
@@ -269,6 +272,13 @@ enum BookingStatus {
   ONGOING
   COMPLETED
   CANCELLED
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
 }
 
 model User {
@@ -402,5 +412,21 @@ model Review {
   createdAt   DateTime         @default(now())
 
   @@index([helperId])
+}
+
+model Dispute {
+  id          String        @id @default(uuid())
+  bookingId   String
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+  raisedById  String
+  raisedBy    User          @relation(fields: [raisedById], references: [id])
+  reason      String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([bookingId])
 }
 ```

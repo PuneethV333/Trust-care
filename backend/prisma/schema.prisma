@@ -41,6 +41,13 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
 model User {
   id                  String    @id @default(uuid())
   firebaseUid         String    @unique
@@ -52,6 +59,7 @@ model User {
 
   householdProfile    HouseholdProfile?
   helperProfile       HelperProfile?
+  disputesRaised      Dispute[]
 
   @@index([firebaseUid])
 }
@@ -148,6 +156,7 @@ model Booking {
   notes          String?
 
   review         Review?
+  disputes       Dispute[]
 
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -172,4 +181,20 @@ model Review {
   createdAt   DateTime         @default(now())
 
   @@index([helperId])
+}
+
+model Dispute {
+  id          String        @id @default(uuid())
+  bookingId   String
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+  raisedById  String
+  raisedBy    User          @relation(fields: [raisedById], references: [id])
+  reason      String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([bookingId])
 }

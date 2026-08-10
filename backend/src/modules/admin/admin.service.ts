@@ -2,11 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client';
 import {
   BookingStatus,
+  DisputeStatus,
   VerificationStatus,
 } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { bookingResponseSchema } from '../bookings/dto/booking.dto';
+import {
+  AdminDisputeItem,
+  adminDisputeItemSchema,
+  paginatedDisputesSchema,
+} from '../bookings/dto/dispute.dto';
 import {
   AdminAnalytics,
   AdminHelperItem,
@@ -65,6 +71,31 @@ type AdminBookingRow = Prisma.BookingGetPayload<{
   select: typeof adminBookingSelect;
 }>;
 
+const adminDisputeSelect = {
+  id: true,
+  bookingId: true,
+  raisedById: true,
+  reason: true,
+  status: true,
+  resolution: true,
+  createdAt: true,
+  updatedAt: true,
+  booking: {
+    select: {
+      id: true,
+      scheduledDate: true,
+      status: true,
+      helper: { select: { id: true, fullName: true } },
+      household: { select: { id: true, fullName: true } },
+    },
+  },
+  raisedBy: { select: { id: true, email: true, role: true } },
+} satisfies Prisma.DisputeSelect;
+
+type AdminDisputeRow = Prisma.DisputeGetPayload<{
+  select: typeof adminDisputeSelect;
+}>;
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -89,6 +120,18 @@ export class AdminService {
       servicePlan: row.servicePlan
         ? { ...row.servicePlan, price: Number(row.servicePlan.price) }
         : null,
+    });
+  }
+
+  private toAdminDispute(row: AdminDisputeRow): AdminDisputeItem {
+    return adminDisputeItemSchema.parse({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      booking: {
+        ...row.booking,
+        scheduledDate: row.booking.scheduledDate.toISOString(),
+      },
     });
   }
 
@@ -199,6 +242,59 @@ export class AdminService {
       total,
       totalPages: Math.ceil(total / perPage),
     };
+  }
+
+  async listDisputes(query: {
+    page: number;
+    perPage: number;
+    status?: DisputeStatus;
+  }) {
+    const page = query.page;
+    const perPage = query.perPage;
+    const where: Prisma.DisputeWhereInput = query.status
+      ? { status: query.status }
+      : {};
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.dispute.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * perPage,
+        take: perPage,
+        select: adminDisputeSelect,
+      }),
+      this.prisma.dispute.count({ where }),
+    ]);
+
+    return paginatedDisputesSchema.parse({
+      items: rows.map((row) => this.toAdminDispute(row)),
+      page,
+      perPage,
+      total,
+      totalPages: Math.ceil(total / perPage),
+    });
+  }
+
+  async resolveDispute(
+    id: string,
+    status: DisputeStatus,
+    resolution: string,
+  ): Promise<AdminDisputeItem> {
+    const dispute = await this.prisma.dispute.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+
+    const updated = await this.prisma.dispute.update({
+      where: { id },
+      data: { status, resolution },
+      select: adminDisputeSelect,
+    });
+
+    return this.toAdminDispute(updated);
   }
 
   async getPlatformAnalytics(): Promise<AdminAnalytics> {

@@ -1,8 +1,19 @@
-import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Role } from '../../../generated/prisma/enums';
+import { DisputeStatus, Role } from '../../../generated/prisma/enums';
 import { Roles } from '../../common/decorators/roles.decorator';
+import {
+  DisputesListQueryDto,
+  PaginatedDisputesDto,
+  ResolveDisputeDto,
+} from '../bookings/dto/dispute.dto';
 import { AdminService } from './admin.service';
 import {
   AdminAnalyticsDto,
@@ -123,6 +134,47 @@ export class AdminController {
     @Query() query: BookingsListQueryDto,
   ): Promise<PaginatedBookingsDto> {
     return this.adminService.listAllBookings(query);
+  }
+
+  @Get('disputes')
+  @Throttle({ default: { limit: 50, ttl: 60_000 } })
+  @ApiOperation({ summary: 'List disputes (paginated, filterable)' })
+  @ApiQuery({ name: 'status', required: false, enum: DisputeStatus })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'perPage', required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    type: PaginatedDisputesDto,
+    description: 'Paginated disputes',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase token',
+  })
+  @ApiResponse({ status: 403, description: 'Admin role required' })
+  listDisputes(
+    @Query() query: DisputesListQueryDto,
+  ): Promise<PaginatedDisputesDto> {
+    return this.adminService.listDisputes(query);
+  }
+
+  @Patch('disputes/:id/resolve')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Resolve or dismiss a dispute' })
+  @ApiBody({ type: ResolveDisputeDto })
+  @ApiResponse({
+    status: 200,
+    type: DisputesListQueryDto,
+    description: 'The updated dispute',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase token',
+  })
+  @ApiResponse({ status: 403, description: 'Admin role required' })
+  @ApiResponse({ status: 404, description: 'Dispute not found' })
+  resolveDispute(@Param('id') id: string, @Body() dto: ResolveDisputeDto) {
+    return this.adminService.resolveDispute(id, dto.status, dto.resolution);
   }
 
   @Get('analytics')
