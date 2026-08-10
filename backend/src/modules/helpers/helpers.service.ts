@@ -4,6 +4,7 @@ import type { Prisma } from '../../../generated/prisma/client';
 import {
   Role,
   BookingStatus,
+  DisputeStatus,
   VerificationStatus,
 } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -421,8 +422,28 @@ export class HelpersService {
     const helper = await this.findByFirebaseUid(firebaseUid);
     const bookings = await this.prisma.booking.findMany({
       where: { helperId: helper.id, status: BookingStatus.COMPLETED },
-      select: { scheduledDate: true, servicePlan: { select: { price: true } } },
+      select: {
+        id: true,
+        scheduledDate: true,
+        servicePlan: { select: { price: true, planType: true } },
+      },
     });
+
+    const disputedBookingIds = new Set(
+      bookings.length === 0
+        ? []
+        : (
+            await this.prisma.dispute.findMany({
+              where: {
+                bookingId: { in: bookings.map((booking) => booking.id) },
+                status: {
+                  in: [DisputeStatus.OPEN, DisputeStatus.IN_REVIEW],
+                },
+              },
+              select: { bookingId: true },
+            })
+          ).map((dispute) => dispute.bookingId),
+    );
 
     const byMonth = new Map<string, { totalEarned: number; count: number }>();
     let totalEarned = 0;
@@ -444,6 +465,15 @@ export class HelpersService {
       monthly: [...byMonth.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([month, value]) => ({ month, ...value })),
+      bookings: bookings
+        .sort((a, b) => b.scheduledDate.getTime() - a.scheduledDate.getTime())
+        .map((booking) => ({
+          bookingId: booking.id,
+          scheduledDate: booking.scheduledDate.toISOString(),
+          planType: booking.servicePlan.planType,
+          price: Number(booking.servicePlan.price),
+          disputed: disputedBookingIds.has(booking.id),
+        })),
     });
 
     await this.redis.set(cacheKey, result, EARNINGS_TTL);

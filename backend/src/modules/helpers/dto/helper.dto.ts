@@ -76,10 +76,19 @@ export const monthlyEarningsSchema = z.object({
   count: z.number(),
 });
 
+export const earningsBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+  scheduledDate: z.string().datetime(),
+  planType: z.nativeEnum(PlanType),
+  price: z.number(),
+  disputed: z.boolean(),
+});
+
 export const helperEarningsSchema = z.object({
   totalEarned: z.number(),
   completedBookings: z.number(),
   monthly: z.array(monthlyEarningsSchema),
+  bookings: z.array(earningsBookingSchema),
 });
 
 export type HelperProfile = z.infer<typeof helperProfileSchema>;
