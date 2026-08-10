@@ -11,6 +11,7 @@ import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { DisputeForm } from './DisputeForm';
 import { ReviewForm } from '../review/ReviewForm';
 
 const statusClasses: Record<BookingStatus, string> = {
@@ -35,12 +36,17 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
   const { user } = useAuth();
   const { mutate, isPending, error } = useBookingAction();
   const [reviewed, setReviewed] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [disputed, setDisputed] = useState(false);
 
   const isHousehold = user?.role === 'HOUSEHOLD';
   const isHelper = user?.role === 'HELPER';
   const isAdmin = user?.role === 'ADMIN';
 
   const canReview = isHousehold && booking.status === 'COMPLETED';
+  const canDispute =
+    (isHousehold || isHelper) &&
+    (booking.status === 'COMPLETED' || booking.status === 'CANCELLED');
 
   const otherParty =
     isHousehold && booking.helper
@@ -157,6 +163,29 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
               onSubmitted={() => setReviewed(true)}
             />
           </div>
+        ))}
+
+      {canDispute &&
+        (disputed ? (
+          <p className="mt-4 rounded-xl bg-primary-100 px-3 py-2 text-sm text-primary-700">
+            Your issue has been reported — our team will review it shortly.
+          </p>
+        ) : reporting ? (
+          <div className="mt-4">
+            <DisputeForm
+              bookingId={booking.id}
+              onSubmitted={() => setDisputed(true)}
+            />
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-4"
+            onClick={() => setReporting(true)}
+          >
+            Report an issue
+          </Button>
         ))}
     </Card>
   );

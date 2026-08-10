@@ -7,6 +7,11 @@ import {
   type BookingResponse,
   type CreateBookingInput,
 } from '../schemas/booking.schema';
+import {
+  createDisputeInputSchema,
+  disputeSchema,
+  type Dispute,
+} from '../schemas/dispute.schema';
 
 export type BookingAction = 'accept' | 'reject' | 'cancel' | 'complete';
 
@@ -56,6 +61,16 @@ export function useBookingAction() {
     },
     onSuccess: () => {
       invalidateMyBookings(queryClient);
+    },
+  });
+}
+
+export function useCreateDispute() {
+  return useMutation<Dispute, ApiError, { bookingId: string; reason: string }>({
+    mutationFn: async ({ bookingId, reason }) => {
+      const parsed = createDisputeInputSchema.parse({ reason });
+      const data = await api.post<unknown>(`/bookings/${bookingId}/dispute`, parsed);
+      return disputeSchema.parse(data);
     },
   });
 }

@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
+import { z } from 'zod';
 import { BookingCard } from '../../components/booking/BookingCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
@@ -9,30 +12,47 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import {
   useAdminAnalytics,
   useAdminBookings,
+  useAdminDisputes,
   useAdminHelpersDecision,
   useAdminUsers,
   usePendingHelpers,
+  useResolveDispute,
 } from '../../hooks/useAdmin';
 import {
   BOOKING_STATUS_LABELS,
   BOOKING_STATUS_VALUES,
+  DISPUTE_STATUS_LABELS,
+  DISPUTE_STATUS_VALUES,
   ROLE_LABELS,
   SERVICE_TYPE_LABELS,
   type BookingStatus,
+  type DisputeStatus,
 } from '../../types';
 import type {
   AdminHelperItem,
   AdminUserItem,
 } from '../../schemas/admin.schema';
+import type { AdminDisputeItem } from '../../schemas/dispute.schema';
+import { Textarea } from '../../components/ui/Textarea';
 
 const NAV_SECTIONS = [
   { key: 'overview', label: 'Overview' },
   { key: 'pending', label: 'Pending verifications' },
   { key: 'users', label: 'Users' },
   { key: 'bookings', label: 'Bookings' },
+  { key: 'disputes', label: 'Disputes' },
 ] as const;
 
 type SectionKey = (typeof NAV_SECTIONS)[number]['key'];
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
 function Pagination({
   page,
@@ -363,6 +383,165 @@ function BookingsSection() {
   );
 }
 
+const disputeStatusClasses: Record<DisputeStatus, string> = {
+  OPEN: 'bg-amber-100 text-amber-800',
+  IN_REVIEW: 'bg-primary-100 text-primary-700',
+  RESOLVED: 'bg-primary-100 text-primary-700',
+  DISMISSED: 'bg-neutral-100 text-neutral-600',
+};
+
+const disputeResolutionSchema = z.object({
+  resolution: z.string().trim().min(3, 'Describe the resolution').max(1000),
+});
+
+function DisputeRow({ dispute }: { dispute: AdminDisputeItem }) {
+  const { mutate, isPending, error } = useResolveDispute();
+  const { register, handleSubmit, formState: { errors } } = useForm<{
+    resolution: string;
+  }>({
+    resolver: standardSchemaResolver(disputeResolutionSchema),
+    defaultValues: { resolution: '' },
+  });
+  const [resolved, setResolved] = useState(false);
+
+  const canAct = dispute.status === 'OPEN' || dispute.status === 'IN_REVIEW';
+  const party =
+    dispute.booking.helper?.fullName ??
+    dispute.booking.household?.fullName ??
+    'Unknown';
+
+  const resolve = (status: 'RESOLVED' | 'DISMISSED') =>
+    handleSubmit(({ resolution }) =>
+      mutate(
+        { id: dispute.id, status, resolution },
+        { onSuccess: () => setResolved(true) },
+      ),
+    )();
+
+  return (
+    <Card className="p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-neutral-800">{party}</p>
+          <p className="mt-0.5 text-sm text-neutral-600">
+            {dispute.raisedBy.email} · {ROLE_LABELS[dispute.raisedBy.role]}
+          </p>
+          <p className="mt-1 text-sm text-neutral-600">
+            {formatDate(dispute.booking.scheduledDate)} ·{' '}
+            {BOOKING_STATUS_LABELS[dispute.booking.status]}
+          </p>
+        </div>
+        <Badge className={disputeStatusClasses[dispute.status]}>
+          {DISPUTE_STATUS_LABELS[dispute.status]}
+        </Badge>
+      </div>
+      <p className="mt-3 text-sm text-neutral-600">{dispute.reason}</p>
+      {dispute.status === 'RESOLVED' || dispute.status === 'DISMISSED' ? null : (
+        <div className="mt-4 rounded-xl bg-neutral-100 p-3">
+          <Textarea
+            label="Resolution"
+            rows={2}
+            placeholder="What did we do about this issue?"
+            {...register('resolution')}
+            error={errors.resolution?.message}
+          />
+          {error && (
+            <p className="mt-2 text-sm text-danger" role="alert">
+              {error.message}
+            </p>
+          )}
+          {canAct && !resolved && (
+            <div className="mt-3 flex gap-2">
+              <Button
+                type="button"
+                onClick={() => resolve('RESOLVED')}
+                isLoading={isPending}
+              >
+                Mark resolved
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => resolve('DISMISSED')}
+                isLoading={isPending}
+              >
+                Dismiss
+              </Button>
+            </div>
+          )}
+          {resolved && (
+            <p className="mt-3 rounded-xl bg-primary-100 px-3 py-2 text-sm text-primary-700">
+              Dispute updated.
+            </p>
+          )}
+        </div>
+      )}
+      {dispute.resolution && dispute.status === 'RESOLVED' && (
+        <p className="mt-3 rounded-xl bg-primary-100 px-3 py-2 text-sm text-primary-700">
+          {dispute.resolution}
+        </p>
+      )}
+    </Card>
+  );
+}
+
+function DisputesSection() {
+  const [status, setStatus] = useState<DisputeStatus | ''>('');
+  const [page, setPage] = useState(1);
+  const query = useAdminDisputes({
+    status: status || undefined,
+    page,
+  });
+
+  if (query.isLoading) {
+    return (
+      <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-24 w-full" />
+      ))}</div>
+    );
+  }
+
+  if (query.isError || !query.data) {
+    return <ErrorCard onRetry={() => void query.refetch()} />;
+  }
+
+  const { items, totalPages } = query.data;
+
+  return (
+    <div className="space-y-4">
+      <div className="max-w-xs">
+        <Select
+          label="Status"
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value as DisputeStatus | '');
+            setPage(1);
+          }}
+        >
+          <option value="">All statuses</option>
+          {DISPUTE_STATUS_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {DISPUTE_STATUS_LABELS[value]}
+            </option>
+          ))}
+        </Select>
+      </div>
+      {items.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-sm text-neutral-600">No disputes match this filter.</p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {items.map((dispute) => (
+            <DisputeRow key={dispute.id} dispute={dispute} />
+          ))}
+        </div>
+      )}
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [section, setSection] = useState<SectionKey>('overview');
 
@@ -389,6 +568,7 @@ export default function AdminPage() {
       {section === 'pending' && <PendingSection />}
       {section === 'users' && <UsersSection />}
       {section === 'bookings' && <BookingsSection />}
+      {section === 'disputes' && <DisputesSection />}
     </div>
   );
 }

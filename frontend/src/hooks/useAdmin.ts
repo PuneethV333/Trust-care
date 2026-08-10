@@ -10,7 +10,14 @@ import {
   type PaginatedBookings,
   type PaginatedUsers,
 } from '../schemas/admin.schema';
-import type { BookingStatus } from '../types';
+import {
+  adminDisputeItemSchema,
+  paginatedDisputesSchema,
+  resolveDisputeInputSchema,
+  type AdminDisputeItem,
+  type PaginatedDisputes,
+} from '../schemas/dispute.schema';
+import type { BookingStatus, DisputeStatus } from '../types';
 
 export function usePendingHelpers() {
   return useQuery<AdminHelperItem[]>({
@@ -85,5 +92,48 @@ export function useAdminAnalytics() {
       return adminAnalyticsSchema.parse(data);
     },
     staleTime: 300_000,
+  });
+}
+
+export function useAdminDisputes(filters: {
+  status?: DisputeStatus;
+  page?: number;
+  perPage?: number;
+}) {
+  const { status, page = 1, perPage = 10 } = filters;
+  return useQuery<PaginatedDisputes>({
+    queryKey: ['admin', 'disputes', status ?? 'all', page, perPage],
+    queryFn: async () => {
+      const data = await api.get<unknown>('/admin/disputes', {
+        status: status ?? undefined,
+        page,
+        perPage,
+      });
+      return paginatedDisputesSchema.parse(data);
+    },
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useResolveDispute() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    AdminDisputeItem,
+    ApiError,
+    { id: string; status: 'RESOLVED' | 'DISMISSED'; resolution: string }
+  >({
+    mutationFn: async ({ id, status, resolution }) => {
+      const parsed = resolveDisputeInputSchema.parse({ status, resolution });
+      const data = await api.patch<unknown>(
+        `/admin/disputes/${id}/resolve`,
+        parsed,
+      );
+      return adminDisputeItemSchema.parse(data);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'disputes'] });
+    },
   });
 }

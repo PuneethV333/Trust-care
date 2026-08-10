@@ -10,6 +10,14 @@ export type PlanType = (typeof PLAN_TYPE_VALUES)[number];
 export const VERIFICATION_STATUS_VALUES = ['PENDING', 'VERIFIED', 'REJECTED'] as const;
 export type VerificationStatus = (typeof VERIFICATION_STATUS_VALUES)[number];
 
+export const DISPUTE_STATUS_VALUES = [
+  'OPEN',
+  'IN_REVIEW',
+  'RESOLVED',
+  'DISMISSED',
+] as const;
+export type DisputeStatus = (typeof DISPUTE_STATUS_VALUES)[number];
+
 export const BOOKING_STATUS_VALUES = [
   'PENDING',
   'ACCEPTED',
@@ -42,6 +50,13 @@ export const VERIFICATION_STATUS_LABELS: Record<VerificationStatus, string> = {
   PENDING: 'Pending',
   VERIFIED: 'Verified',
   REJECTED: 'Rejected',
+};
+
+export const DISPUTE_STATUS_LABELS: Record<DisputeStatus, string> = {
+  OPEN: 'Open',
+  IN_REVIEW: 'In review',
+  RESOLVED: 'Resolved',
+  DISMISSED: 'Dismissed',
 };
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
