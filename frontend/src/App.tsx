@@ -12,6 +12,7 @@ import BookingsPage from './pages/bookings'
 import HelperDetailPage from './pages/helper-detail'
 import HomePage from './pages/home'
 import OnboardingPage from './pages/onboarding'
+import EarningsPage from './pages/earnings'
 import ProfilePage from './pages/profile'
 import SearchPage from './pages/search'
 import SignInPage from './pages/sign-in'
@@ -49,6 +50,7 @@ function App() {
             <Route path="search" element={<SearchPage />} />
             <Route path="helpers/:helperId" element={<HelperDetailPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="earnings" element={<EarningsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route
               path="admin"

@@ -2,6 +2,7 @@ import { useMyEarnings } from '../../hooks/useProfile';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Skeleton } from '../ui/Skeleton';
+import { Link } from 'react-router-dom';
 
 export function EarningsCard() {
   const query = useMyEarnings();
@@ -45,6 +46,11 @@ export function EarningsCard() {
           No completed bookings yet — your earnings from completed bookings
           will appear here.
         </p>
+        <Link to="/earnings" className="mt-4 inline-block">
+          <Button type="button" variant="secondary">
+            View earnings
+          </Button>
+        </Link>
       </Card>
     );
   }
@@ -77,6 +83,11 @@ export function EarningsCard() {
           </li>
         ))}
       </ul>
+      <Link to="/earnings" className="mt-3 inline-block">
+        <Button type="button" variant="secondary">
+          View earnings details
+        </Button>
+      </Link>
     </Card>
   );
 }

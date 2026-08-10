@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { EarningsCard } from '../../components/helper/EarningsCard';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -91,15 +92,18 @@ function HelperHome() {
   }[query.data.helperProfile.verificationStatus];
 
   return (
-    <Card className={`p-6 ${copy.className}`}>
-      <h1 className="text-2xl font-semibold">{copy.title}</h1>
-      <p className="mt-2 opacity-90">{copy.kicker}</p>
-      <Link to="/profile" className="inline-block">
-        <Button className="mt-4 bg-white text-primary-700 hover:bg-primary-50">
-          View my profile
-        </Button>
-      </Link>
-    </Card>
+    <div className="space-y-6">
+      <Card className={`p-6 ${copy.className}`}>
+        <h1 className="text-2xl font-semibold">{copy.title}</h1>
+        <p className="mt-2 opacity-90">{copy.kicker}</p>
+        <Link to="/profile" className="inline-block">
+          <Button className="mt-4 bg-white text-primary-700 hover:bg-primary-50">
+            View my profile
+          </Button>
+        </Link>
+      </Card>
+      <EarningsCard />
+    </div>
   );
 }
 

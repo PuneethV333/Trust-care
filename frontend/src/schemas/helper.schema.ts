@@ -77,10 +77,19 @@ export const monthlyEarningsSchema = z.object({
   count: z.number(),
 });
 
+export const earningsBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+  scheduledDate: z.string().datetime(),
+  planType: z.enum(PLAN_TYPE_VALUES),
+  price: z.number(),
+  disputed: z.boolean(),
+});
+
 export const helperEarningsSchema = z.object({
   totalEarned: z.number(),
   completedBookings: z.number(),
   monthly: z.array(monthlyEarningsSchema),
+  bookings: z.array(earningsBookingSchema),
 });
 
 export const helperOnboardingInputSchema = z.object({
@@ -140,6 +149,7 @@ export type SearchHelpersResponse = z.infer<typeof searchHelpersResponseSchema>;
 export type Availability = z.infer<typeof availabilitySchema>;
 export type VerificationDocument = z.infer<typeof documentSchema>;
 export type HelperEarnings = z.infer<typeof helperEarningsSchema>;
+export type EarningsBooking = z.infer<typeof earningsBookingSchema>;
 export type SearchHelpersQuery = z.infer<typeof searchHelpersQuerySchema>;
 export type ServicePlan = z.infer<typeof servicePlanSchema>;
 export type CreateServicePlanInput = z.infer<typeof createServicePlanInputSchema>;
