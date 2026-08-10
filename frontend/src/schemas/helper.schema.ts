@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import {
+  DAY_VALUES,
   PLAN_TYPE_VALUES,
   SERVICE_TYPE_VALUES,
+  TIME_SLOT_VALUES,
   VERIFICATION_STATUS_VALUES,
 } from '../types';
 
@@ -118,6 +120,8 @@ export const searchHelpersQuerySchema = z.object({
   city: z.string().trim().min(1).optional(),
   minExperience: z.coerce.number().int().min(0).optional(),
   planType: z.enum(PLAN_TYPE_VALUES).optional(),
+  day: z.enum(DAY_VALUES).optional(),
+  timeSlot: z.enum(TIME_SLOT_VALUES).optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 

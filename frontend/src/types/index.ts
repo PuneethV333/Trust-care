@@ -7,6 +7,20 @@ export type ServiceType = (typeof SERVICE_TYPE_VALUES)[number];
 export const PLAN_TYPE_VALUES = ['HOURLY', 'MONTHLY', 'YEARLY'] as const;
 export type PlanType = (typeof PLAN_TYPE_VALUES)[number];
 
+export const DAY_VALUES = [
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sun',
+] as const;
+export type Day = (typeof DAY_VALUES)[number];
+
+export const TIME_SLOT_VALUES = ['morning', 'afternoon', 'evening'] as const;
+export type TimeSlot = (typeof TIME_SLOT_VALUES)[number];
+
 export const VERIFICATION_STATUS_VALUES = ['PENDING', 'VERIFIED', 'REJECTED'] as const;
 export type VerificationStatus = (typeof VERIFICATION_STATUS_VALUES)[number];
 
@@ -50,6 +64,22 @@ export const VERIFICATION_STATUS_LABELS: Record<VerificationStatus, string> = {
   PENDING: 'Pending',
   VERIFIED: 'Verified',
   REJECTED: 'Rejected',
+};
+
+export const DAY_LABELS: Record<Day, string> = {
+  mon: 'Monday',
+  tue: 'Tuesday',
+  wed: 'Wednesday',
+  thu: 'Thursday',
+  fri: 'Friday',
+  sat: 'Saturday',
+  sun: 'Sunday',
+};
+
+export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
+  morning: 'Morning',
+  afternoon: 'Afternoon',
+  evening: 'Evening',
 };
 
 export const DISPUTE_STATUS_LABELS: Record<DisputeStatus, string> = {

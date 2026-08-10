@@ -19,6 +19,8 @@ export function useHelperSearch(filters: SearchHelpersQuery) {
         city: parsed.city,
         minExperience: parsed.minExperience,
         planType: parsed.planType,
+        day: parsed.day,
+        timeSlot: parsed.timeSlot,
         page: parsed.page,
       });
       return searchHelpersResponseSchema.parse(items);

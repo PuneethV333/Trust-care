@@ -7,12 +7,18 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { Select } from '../../components/ui/Select';
 import { useHelperSearch } from '../../hooks/useHelpers';
 import {
+  DAY_LABELS,
+  DAY_VALUES,
   PLAN_TYPE_LABELS,
   PLAN_TYPE_VALUES,
   SERVICE_TYPE_LABELS,
   SERVICE_TYPE_VALUES,
+  TIME_SLOT_LABELS,
+  TIME_SLOT_VALUES,
+  type Day,
   type PlanType,
   type ServiceType,
+  type TimeSlot,
 } from '../../types';
 
 interface Draft {
@@ -20,6 +26,8 @@ interface Draft {
   city: string;
   minExperience: string;
   planType: string;
+  day: string;
+  timeSlot: string;
 }
 
 interface Applied {
@@ -27,9 +35,18 @@ interface Applied {
   city?: string;
   minExperience?: number;
   planType?: PlanType;
+  day?: Day;
+  timeSlot?: TimeSlot;
 }
 
-const initialDraft: Draft = { type: '', city: '', minExperience: '', planType: '' };
+const initialDraft: Draft = {
+  type: '',
+  city: '',
+  minExperience: '',
+  planType: '',
+  day: '',
+  timeSlot: '',
+};
 
 function ResultSkeleton() {
   return (
@@ -64,6 +81,8 @@ export default function SearchPage() {
       city: draft.city.trim() || undefined,
       minExperience: draft.minExperience ? Number(draft.minExperience) : undefined,
       planType: (draft.planType || undefined) as PlanType | undefined,
+      day: (draft.day || undefined) as Day | undefined,
+      timeSlot: (draft.timeSlot || undefined) as TimeSlot | undefined,
     });
     setPage(1);
   };
@@ -86,7 +105,7 @@ export default function SearchPage() {
       </div>
 
       <Card className="p-4">
-        <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           <Select
             label="Service type"
             value={draft.type}
@@ -125,7 +144,31 @@ export default function SearchPage() {
             value={draft.minExperience}
             onChange={(e) => setDraft({ ...draft, minExperience: e.target.value })}
           />
-          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
+          <Select
+            label="Available day"
+            value={draft.day}
+            onChange={(e) => setDraft({ ...draft, day: e.target.value })}
+          >
+            <option value="">Any day</option>
+            {DAY_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {DAY_LABELS[value]}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label="Time slot"
+            value={draft.timeSlot}
+            onChange={(e) => setDraft({ ...draft, timeSlot: e.target.value })}
+          >
+            <option value="">Any time</option>
+            {TIME_SLOT_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {TIME_SLOT_LABELS[value]}
+              </option>
+            ))}
+          </Select>
+          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-6">
             <Button type="submit" className="flex-1">
               Search
             </Button>
