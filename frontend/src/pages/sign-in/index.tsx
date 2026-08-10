@@ -96,7 +96,7 @@ export default function SignInPage() {
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10">
       <div className="mb-8 text-center">
         <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700">
-          Helper4U
+          Trust Care
         </span>
         <h1 className="mt-4 text-2xl font-semibold text-neutral-800">
           Trusted help, verified people

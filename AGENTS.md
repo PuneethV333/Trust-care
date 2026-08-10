@@ -1,4 +1,4 @@
-# AGENTS.md — Trust Care (Helper4U: Maid & Nanny Service Platform)
+# AGENTS.md — Trust Care (Maid & Nanny Service Platform)
 
 Read this file fully before writing code. It is the repo's single source of truth. Two
 companion docs carry the implementation detail — read the one for the layer you're touching:
@@ -6,8 +6,8 @@ companion docs carry the implementation detail — read the one for the layer yo
 - `backend/backend.md` — NestJS API: project layout, route map, cache keys/TTLs, rate limits, Swagger.
 - `frontend/frontend.md` — React client: design tokens, structure, data-fetching rules.
 
-> Naming note: the spec calls this product "Helper4U"; the current app title/README say "Trust
-> Care". Neither is canonical yet — don't rename things either way until it's settled.
+> Naming note: the product name is **Trust Care**. The spec once called it "Helper4U"; don't
+> reintroduce that name.
 
 ## 0. How to work (read every session)
 

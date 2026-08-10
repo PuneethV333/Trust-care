@@ -326,7 +326,7 @@ export default function OnboardingPage() {
         Set up your profile
       </h1>
       <p className="mt-1 text-sm text-neutral-600">
-        Tell us a bit about yourself so we can tailor Helper4U for you.
+        Tell us a bit about yourself so we can tailor Trust Care for you.
       </p>
 
       {step === 'choose' && (

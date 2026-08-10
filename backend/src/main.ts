@@ -12,7 +12,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('Helper4U API')
+    .setTitle('Trust Care API')
     .setDescription('Maid & Nanny service platform API')
     .setVersion('1.0')
     .addBearerAuth()

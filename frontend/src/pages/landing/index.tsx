@@ -53,7 +53,7 @@ export default function LandingPage() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
           <Link to="/" className="flex items-center gap-2 font-semibold text-neutral-800">
             <ShieldIcon className="h-6 w-6 text-primary-600" />
-            Helper4U
+            Trust Care
           </Link>
           <Link to="/sign-in">
             <Button type="button">Sign in</Button>
@@ -69,7 +69,7 @@ export default function LandingPage() {
                 Trusted maids &amp; nannies for your home
               </h1>
               <p className="mt-4 text-lg text-primary-100">
-                Helper4U connects you with verified household help — compare
+                Trust Care connects you with verified household help — compare
                 rates, read real reviews, and book in minutes.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -145,7 +145,7 @@ export default function LandingPage() {
             Ready to find help?
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-neutral-600">
-            Join households and helpers on Helper4U today.
+            Join households and helpers on Trust Care today.
           </p>
           <Link to="/sign-in" className="mt-5 inline-block">
             <Button size="lg">Get started</Button>
@@ -155,7 +155,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-neutral-200 bg-white">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 text-center text-sm text-neutral-500">
-          Helper4U — trusted household help, verified.
+          Trust Care — trusted household help, verified.
         </div>
       </footer>
     </div>

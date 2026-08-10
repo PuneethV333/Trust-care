@@ -200,7 +200,7 @@ Frontend uploads directly to Cloudinary with this signature; backend never proxi
 ## 6. Swagger
 
 - `main.ts`: `SwaggerModule.setup('api/docs', app, document)` using `DocumentBuilder` with
-  title `Helper4U API`, bearer auth scheme (`addBearerAuth()`).
+  title `Trust Care API`, bearer auth scheme (`addBearerAuth()`).
 - Every controller gets `@ApiTags('helpers')` etc.
 - DTOs are defined once as Zod schemas and wrapped with `nestjs-zod`'s `createZodDto` — this
   gives you request validation **and** OpenAPI schema generation from a single definition. Do

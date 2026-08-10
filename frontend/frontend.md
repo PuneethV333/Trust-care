@@ -8,7 +8,7 @@ detail only.
 
 ## 1. Design direction
 
-The core value proposition of Helper4U is **trust** — verified helpers, transparent pricing,
+The core value proposition of Trust Care is **trust** — verified helpers, transparent pricing,
 accountability. The UI should read as calm, credible, and warm, not like a generic gig-economy
 marketplace. Avoid harsh corporate blue-on-white SaaS defaults; avoid neon/gig-app energy too.
 

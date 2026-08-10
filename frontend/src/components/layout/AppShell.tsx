@@ -43,9 +43,9 @@ export function AppShell() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-2 font-semibold text-neutral-800">
             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-500 text-xs font-bold text-white">
-              H
+              T
             </span>
-            Helper4U
+            Trust Care
           </Link>
           <nav className="flex items-center gap-1">
             {tabs.map((tab) => (
