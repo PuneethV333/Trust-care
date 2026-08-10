@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api';
 import {
   currentUserSchema,
@@ -9,12 +9,19 @@ import {
   type HouseholdProfileInput,
 } from '../schemas/user.schema';
 import {
+  createServicePlanInputSchema,
   helperEarningsSchema,
   helperProfileSchema,
+  servicePlanSchema,
+  updateAvailabilityInputSchema,
   updateHelperProfileInputSchema,
+  updateServicePlanInputSchema,
+  type Availability,
+  type CreateServicePlanInput,
   type HelperEarnings,
   type HelperProfile,
   type HelperUpdateInput,
+  type ServicePlan,
 } from '../schemas/helper.schema';
 
 export function useCurrentUser(enabled = true) {
@@ -68,6 +75,12 @@ export function useMyEarnings(enabled = true) {
   });
 }
 
+function invalidateHelperQueries(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: ['helpers', 'me'] });
+  void queryClient.invalidateQueries({ queryKey: ['helpers', 'detail'] });
+  void queryClient.invalidateQueries({ queryKey: ['helpers', 'search'] });
+}
+
 export function useUpdateHelper() {
   const queryClient = useQueryClient();
 
@@ -77,10 +90,60 @@ export function useUpdateHelper() {
       const data = await api.patch<unknown>('/helpers/me', parsed);
       return helperProfileSchema.parse(data);
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['helpers', 'me'] });
-      void queryClient.invalidateQueries({ queryKey: ['helpers', 'detail'] });
-      void queryClient.invalidateQueries({ queryKey: ['helpers', 'search'] });
+    onSuccess: () => invalidateHelperQueries(queryClient),
+  });
+}
+
+export function useUpdateAvailability() {
+  const queryClient = useQueryClient();
+
+  return useMutation<HelperProfile, ApiError, { availability: Availability }>({
+    mutationFn: async (input) => {
+      const parsed = updateAvailabilityInputSchema.parse(input);
+      const data = await api.patch<unknown>('/helpers/me/availability', parsed);
+      return helperProfileSchema.parse(data);
     },
+    onSuccess: () => invalidateHelperQueries(queryClient),
+  });
+}
+
+export function useCreateServicePlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ServicePlan, ApiError, CreateServicePlanInput>({
+    mutationFn: async (input) => {
+      const parsed = createServicePlanInputSchema.parse(input);
+      const data = await api.post<unknown>('/service-plans', parsed);
+      return servicePlanSchema.parse(data);
+    },
+    onSuccess: () => invalidateHelperQueries(queryClient),
+  });
+}
+
+export function useUpdateServicePlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ServicePlan,
+    ApiError,
+    { id: string; input: Partial<CreateServicePlanInput> & { isActive?: boolean } }
+  >({
+    mutationFn: async ({ id, input }) => {
+      const parsed = updateServicePlanInputSchema.parse(input);
+      const data = await api.patch<unknown>(`/service-plans/${id}`, parsed);
+      return servicePlanSchema.parse(data);
+    },
+    onSuccess: () => invalidateHelperQueries(queryClient),
+  });
+}
+
+export function useDeleteServicePlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ApiError, string>({
+    mutationFn: async (id) => {
+      await api.del<unknown>(`/service-plans/${id}`);
+    },
+    onSuccess: () => invalidateHelperQueries(queryClient),
   });
 }

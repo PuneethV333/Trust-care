@@ -140,7 +140,9 @@ export const createServicePlanInputSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
-export const updateServicePlanInputSchema = createServicePlanInputSchema.partial();
+export const updateServicePlanInputSchema = createServicePlanInputSchema
+  .partial()
+  .extend({ isActive: z.boolean().optional() });
 
 export type HelperProfile = z.infer<typeof helperProfileSchema>;
 export type HelperProfilePublic = z.infer<typeof helperProfilePublicSchema>;

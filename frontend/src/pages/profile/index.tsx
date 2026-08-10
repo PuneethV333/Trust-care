@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { VerificationDocumentsSection } from '../../components/helper/VerificationDocumentsSection';
 import { EarningsCard } from '../../components/helper/EarningsCard';
+import { ServicePlansSection } from '../../components/helper/ServicePlansSection';
+import { AvailabilitySection } from '../../components/helper/AvailabilitySection';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -384,6 +386,8 @@ export default function ProfilePage() {
       {user.role === 'HELPER' && (
         <>
           <HelperSection />
+          <ServicePlansSection />
+          <AvailabilitySection />
           <EarningsCard />
           <VerificationDocumentsSection />
         </>
