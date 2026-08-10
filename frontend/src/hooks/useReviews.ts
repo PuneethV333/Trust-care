@@ -3,10 +3,24 @@ import { z } from 'zod';
 import { api, ApiError } from '../lib/api';
 import {
   createReviewInputSchema,
+  myReviewsSchema,
   reviewResponseSchema,
   type CreateReviewInput,
+  type MyReviews,
   type ReviewResponse,
 } from '../schemas/review.schema';
+
+export function useMyReviews(enabled = true) {
+  return useQuery<MyReviews>({
+    queryKey: ['reviews', 'me'],
+    queryFn: async () => {
+      const data = await api.get<unknown>('/reviews/me');
+      return myReviewsSchema.parse(data);
+    },
+    enabled,
+    staleTime: 30_000,
+  });
+}
 
 export function useHelperReviews(helperId: string) {
   return useQuery<ReviewResponse[]>({
@@ -36,6 +50,9 @@ export function useCreateReview() {
       });
       void queryClient.invalidateQueries({
         queryKey: ['helpers', 'detail', review.helperId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['reviews', 'me'],
       });
     },
   });

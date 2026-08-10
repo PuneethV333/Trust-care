@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { EarningsCard } from '../../components/helper/EarningsCard';
+import { ReviewsCard } from '../../components/review/ReviewsCard';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -42,6 +43,8 @@ function HouseholdHome() {
           ))}
         </div>
       </section>
+
+      <ReviewsCard />
     </div>
   );
 }
@@ -103,6 +106,7 @@ function HelperHome() {
         </Link>
       </Card>
       <EarningsCard />
+      <ReviewsCard />
     </div>
   );
 }
