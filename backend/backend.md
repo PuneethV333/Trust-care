@@ -110,7 +110,7 @@ return `{ id, role, onboardingCompleted }`.
 | GET | `/helpers/me/earnings` | `getEarnings` (total earned, completed count, monthly breakdown from COMPLETED bookings) | Role:HELPER | `helper:earnings:<uid>` TTL 60s | 60 / 60s |
 | PATCH | `/helpers/me` | `updateHelperProfile` | Role:HELPER | invalidates `helper:me:<uid>`, `helper:profile:<id>`, `helpers:search:*` | 20 / 60s |
 | PATCH | `/helpers/me/availability` | `updateAvailability` | Role:HELPER | invalidates `helper:me:<uid>`, `helper:profile:<id>`, `helpers:search:*` | 20 / 60s |
-| GET | `/helpers` | `searchHelpers` (query: `type`, `city`, `minExperience`, `planType`, `page`) | Public | `helpers:search:<md5(querystring)>` TTL 120s | 60 / 60s |
+| GET | `/helpers` | `searchHelpers` (query: `type`, `city`, `minExperience`, `planType`, `day`, `timeSlot`, `page`) | Public | `helpers:search:<md5(querystring)>` TTL 120s | 60 / 60s |
 | GET | `/helpers/:id` | `getHelperById` | Public | `helper:profile:<id>` TTL 300s | 60 / 60s |
 | POST | `/helpers/me/documents` | `uploadVerificationDocument` (stores Cloudinary url returned by client after signed upload) | Role:HELPER | invalidates `helper:me:<uid>` | 10 / 60s |
 

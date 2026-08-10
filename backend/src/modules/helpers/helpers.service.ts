@@ -35,6 +35,60 @@ const EARNINGS_TTL = 60;
 const SEARCH_TTL = 120;
 const SEARCH_PER_PAGE = 10;
 
+const TIME_SLOT_WINDOWS: Record<string, [number, number]> = {
+  morning: [6 * 60, 12 * 60],
+  afternoon: [12 * 60, 17 * 60],
+  evening: [17 * 60, 21 * 60],
+};
+
+function toMinutes(value: string): number | null {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value.trim());
+  if (!match) {
+    return null;
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function slotOverlaps(slot: string, window: [number, number]): boolean {
+  const [rawStart, rawEnd] = slot.split('-');
+  if (!rawStart || !rawEnd) {
+    return false;
+  }
+  const start = toMinutes(rawStart);
+  const end = toMinutes(rawEnd);
+  if (start === null || end === null) {
+    return false;
+  }
+  return start < window[1] && end > window[0];
+}
+
+function matchesAvailability(
+  availability: unknown,
+  day?: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun',
+  timeSlot?: 'morning' | 'afternoon' | 'evening',
+): boolean {
+  const record = availability as Record<string, unknown> | null | undefined;
+  if (!record) {
+    return false;
+  }
+
+  const days = day ? [day] : Object.keys(record);
+  const window = timeSlot ? TIME_SLOT_WINDOWS[timeSlot] : null;
+
+  return days.some((key) => {
+    const slots = record[key];
+    if (!Array.isArray(slots) || slots.length === 0) {
+      return false;
+    }
+    if (!window) {
+      return true;
+    }
+    return slots.some(
+      (slot) => typeof slot === 'string' && slotOverlaps(slot, window),
+    );
+  });
+}
+
 type HelperRow = {
   servicePlans: Array<{ price: unknown }>;
   documents: Array<{ createdAt: Date }>;
@@ -105,6 +159,7 @@ export class HelpersService {
     ratingAvg: true,
     ratingCount: true,
     verificationStatus: true,
+    availability: true,
     servicePlans: this.servicePlansSelect,
   } as const;
 
@@ -250,16 +305,10 @@ export class HelpersService {
         : {}),
     };
 
-    const [rows, total] = await this.prisma.$transaction([
-      this.prisma.helperProfile.findMany({
-        where,
-        select: this.searchSelect,
-        orderBy: [{ ratingAvg: 'desc' }, { createdAt: 'desc' }],
-        skip: (page - 1) * SEARCH_PER_PAGE,
-        take: SEARCH_PER_PAGE,
-      }),
-      this.prisma.helperProfile.count({ where }),
-    ]);
+    const { rows, total } =
+      query.day || query.timeSlot
+        ? await this.searchWithAvailabilityWhere(where, query)
+        : await this.searchPaginatedWhere(where, page);
 
     const items = rows.map((row) =>
       helperSearchItemSchema.parse({
@@ -280,6 +329,43 @@ export class HelpersService {
 
     await this.redis.set(cacheKey, result, SEARCH_TTL);
     return result;
+  }
+
+  private async searchPaginatedWhere(
+    where: Prisma.HelperProfileWhereInput,
+    page: number,
+  ) {
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.helperProfile.findMany({
+        where,
+        select: this.searchSelect,
+        orderBy: [{ ratingAvg: 'desc' }, { createdAt: 'desc' }],
+        skip: (page - 1) * SEARCH_PER_PAGE,
+        take: SEARCH_PER_PAGE,
+      }),
+      this.prisma.helperProfile.count({ where }),
+    ]);
+    return { rows, total };
+  }
+
+  private async searchWithAvailabilityWhere(
+    where: Prisma.HelperProfileWhereInput,
+    query: SearchHelpersQuery,
+  ) {
+    const all = await this.prisma.helperProfile.findMany({
+      where,
+      select: this.searchSelect,
+      orderBy: [{ ratingAvg: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    const filtered = all.filter((row) =>
+      matchesAvailability(row.availability, query.day, query.timeSlot),
+    );
+    const start = (query.page - 1) * SEARCH_PER_PAGE;
+    return {
+      rows: filtered.slice(start, start + SEARCH_PER_PAGE),
+      total: filtered.length,
+    };
   }
 
   async getHelperById(id: string): Promise<HelperProfilePublic> {

@@ -40,6 +40,8 @@ export const searchHelpersQuerySchema = z.object({
   city: z.string().trim().min(1).optional(),
   minExperience: z.coerce.number().int().min(0).optional(),
   planType: z.nativeEnum(PlanType).optional(),
+  day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']).optional(),
+  timeSlot: z.enum(['morning', 'afternoon', 'evening']).optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 
