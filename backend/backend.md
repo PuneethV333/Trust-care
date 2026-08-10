@@ -148,8 +148,9 @@ Any other transition throws `400 Bad Request`.
 
 | Method | Path | Handler | Auth | Cache | Rate limit |
 |---|---|---|---|---|---|
-| POST | `/reviews` | `createReview` (only if booking `status = COMPLETED` and no existing review) | Role:HOUSEHOLD (owner check) | invalidates `reviews:helper:<helperId>`, `helper:profile:<helperId>` | 10 / 60s |
+| POST | `/reviews` | `createReview` (only if booking `status = COMPLETED` and no existing review) | Role:HOUSEHOLD (owner check) | invalidates `reviews:helper:<helperId>`, `helper:profile:<helperId>`, `reviews:me:<householdUid>` | 10 / 60s |
 | GET | `/reviews/helper/:helperId` | `getHelperReviews` | Public | `reviews:helper:<helperId>` TTL 300s | 60 / 60s |
+| GET | `/reviews/me` | `getMyReviews` (role-aware: household = sent reviews + bookings awaiting review; helper = received reviews + bookings awaiting review) | Role:HOUSEHOLD or Role:HELPER | `reviews:me:<uid>` TTL 30s | 60 / 60s |
 
 On create, also recompute and persist `ratingAvg`/`ratingCount` on `HelperProfile` in the same
 transaction.

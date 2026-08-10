@@ -6,13 +6,34 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { FirebaseUser } from '../../common/guards/firebase-auth.guard';
-import { CreateReviewDto, ReviewDto } from './dto/review.dto';
+import { CreateReviewDto, MyReviewsDto, ReviewDto } from './dto/review.dto';
 import { ReviewsService } from './reviews.service';
 
 @ApiTags('reviews')
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
+
+  @Get('me')
+  @Roles(Role.HOUSEHOLD, Role.HELPER)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({
+    summary:
+      'Get my reviews and pending reviews (household: sent reviews + bookings awaiting review; helper: received reviews + bookings awaiting review)',
+  })
+  @ApiResponse({
+    status: 200,
+    type: MyReviewsDto,
+    description: 'My reviews and pending reviews',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase token',
+  })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  getMine(@CurrentUser() user: FirebaseUser) {
+    return this.reviewsService.getMyReviews(user.firebaseUid);
+  }
 
   @Post()
   @Roles(Role.HOUSEHOLD)

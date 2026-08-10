@@ -6,16 +6,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client';
-import { BookingStatus } from '../../../generated/prisma/enums';
+import { BookingStatus, Role } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import {
   CreateReviewDto,
+  MyReviews,
+  myReviewsSchema,
   reviewResponseSchema,
   ReviewResponse,
 } from './dto/review.dto';
 
 const REVIEWS_CACHE_TTL = 300;
+const MY_REVIEWS_CACHE_TTL = 30;
 
 const reviewSelect = {
   id: true,
@@ -26,6 +29,7 @@ const reviewSelect = {
   comment: true,
   createdAt: true,
   household: { select: { id: true, fullName: true, avatarUrl: true } },
+  helper: { select: { id: true, fullName: true, avatarUrl: true } },
 } satisfies Prisma.ReviewSelect;
 
 type ReviewRow = Prisma.ReviewGetPayload<{ select: typeof reviewSelect }>;
@@ -111,6 +115,7 @@ export class ReviewsService {
 
     await this.redis.del(`reviews:helper:${booking.helperId}`);
     await this.redis.del(`helper:profile:${booking.helperId}`);
+    await this.redis.del(`reviews:me:${firebaseUid}`);
     return this.toReview(review);
   }
 
@@ -137,6 +142,74 @@ export class ReviewsService {
 
     const result = reviews.map((review) => this.toReview(review));
     await this.redis.set(cacheKey, result, REVIEWS_CACHE_TTL);
+    return result;
+  }
+
+  async getMyReviews(firebaseUid: string): Promise<MyReviews> {
+    const cacheKey = `reviews:me:${firebaseUid}`;
+    const cached = await this.redis.get<MyReviews>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { firebaseUid },
+      select: {
+        role: true,
+        householdProfile: { select: { id: true } },
+        helperProfile: { select: { id: true } },
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isHelper = user.role === Role.HELPER;
+    const profileId = isHelper
+      ? user.helperProfile?.id
+      : user.householdProfile?.id;
+    if (!profileId) {
+      throw new NotFoundException(
+        isHelper
+          ? 'Helper profile not found. Complete onboarding first.'
+          : 'Household profile not found. Complete onboarding first.',
+      );
+    }
+
+    const reviews = await this.prisma.review.findMany({
+      where: isHelper ? { helperId: profileId } : { householdId: profileId },
+      orderBy: { createdAt: 'desc' },
+      select: reviewSelect,
+    });
+
+    const pendingBookings = await this.prisma.booking.findMany({
+      where: {
+        status: BookingStatus.COMPLETED,
+        review: { is: null },
+        ...(isHelper ? { helperId: profileId } : { householdId: profileId }),
+      },
+      select: {
+        id: true,
+        scheduledDate: true,
+        servicePlan: { select: { planType: true, price: true } },
+        household: { select: { fullName: true, avatarUrl: true } },
+        helper: { select: { fullName: true, avatarUrl: true } },
+      },
+      orderBy: { scheduledDate: 'desc' },
+    });
+
+    const result = myReviewsSchema.parse({
+      reviewed: reviews.map((review) => this.toReview(review)),
+      pending: pendingBookings.map((booking) => ({
+        bookingId: booking.id,
+        scheduledDate: booking.scheduledDate.toISOString(),
+        planType: booking.servicePlan.planType,
+        price: Number(booking.servicePlan.price),
+        otherParty: isHelper ? booking.household : booking.helper,
+      })),
+    });
+
+    await this.redis.set(cacheKey, result, MY_REVIEWS_CACHE_TTL);
     return result;
   }
 }
