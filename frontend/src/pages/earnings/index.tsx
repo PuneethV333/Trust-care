@@ -32,7 +32,7 @@ function EarningsBookingRow({ booking }: { booking: EarningsBooking }) {
 
   return (
     <Card className="p-4">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div>
           <p className="font-medium text-neutral-800">
             {PLAN_TYPE_LABELS[booking.planType]} · ₹{booking.price}

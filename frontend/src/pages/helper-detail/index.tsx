@@ -21,6 +21,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCreateBooking } from '../../hooks/useBookings';
 import { useHelperProfile } from '../../hooks/useHelpers';
 import { useHelperReviews } from '../../hooks/useReviews';
+import { planPrice } from '../../lib/format';
 import {
   PLAN_TYPE_LABELS,
   SERVICE_TYPE_LABELS,
@@ -151,7 +152,7 @@ function BookingForm({
         >
           {plans.map((plan) => (
             <option key={plan.id} value={plan.id}>
-              {PLAN_TYPE_LABELS[plan.planType]} — ₹{plan.price}/hr
+              {PLAN_TYPE_LABELS[plan.planType]} — {planPrice(plan.planType, plan.price)}
             </option>
           ))}
         </Select>
@@ -368,9 +369,9 @@ export default function HelperDetailPage() {
             Availability not set yet — reach out to confirm timings.
           </p>
         ) : (
-          <ul className="mt-3 space-y-1">
+          <ul className="mt-3 space-y-2">
             {availabilityEntries.map(([day, times]) => (
-              <li key={day} className="flex justify-between text-sm">
+              <li key={day} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-sm">
                 <span className="text-neutral-600">{DAY_LABELS[day] ?? day}</span>
                 <span className="text-neutral-800">{times.join(', ')}</span>
               </li>
@@ -388,7 +389,7 @@ export default function HelperDetailPage() {
         ) : (
           <ul className="mt-3 divide-y divide-neutral-100">
             {activePlans.map((plan) => (
-              <li key={plan.id} className="flex items-center justify-between py-3">
+              <li key={plan.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3">
                 <div>
                   <p className="font-medium text-neutral-800">
                     {PLAN_TYPE_LABELS[plan.planType]}
@@ -398,8 +399,7 @@ export default function HelperDetailPage() {
                   )}
                 </div>
                 <p className="font-semibold text-neutral-800">
-                  ₹{plan.price}
-                  <span className="text-sm font-normal text-neutral-600">/hr</span>
+                  {planPrice(plan.planType, plan.price)}
                 </p>
               </li>
             ))}

@@ -17,9 +17,16 @@ interface Tab {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-function tabClass(isActive: boolean) {
+function desktopTabClass(isActive: boolean) {
   return [
-    'flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium',
+    'rounded-lg px-3 py-2 text-sm font-medium',
+    isActive ? 'bg-primary-50 text-primary-700' : 'text-neutral-600 hover:text-neutral-900',
+  ].join(' ');
+}
+
+function mobileTabClass(isActive: boolean) {
+  return [
+    'flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium',
     isActive ? 'text-primary-700' : 'text-neutral-400',
   ].join(' ');
 }
@@ -38,7 +45,7 @@ export function AppShell() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col">
+<div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-10 hidden border-b border-neutral-200 bg-white/90 backdrop-blur md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-2 font-semibold text-neutral-800">
@@ -53,7 +60,7 @@ export function AppShell() {
                 key={tab.to}
                 to={tab.to}
                 end={tab.to === '/'}
-                className={({ isActive }) => tabClass(isActive)}
+                className={({ isActive }) => desktopTabClass(isActive)}
               >
                 {tab.label}
               </NavLink>
@@ -80,7 +87,7 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
         <div
           className="grid"
           style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
@@ -90,7 +97,7 @@ export function AppShell() {
               key={tab.to}
               to={tab.to}
               end={tab.to === '/'}
-              className={({ isActive }) => tabClass(isActive)}
+              className={({ isActive }) => mobileTabClass(isActive)}
             >
               <tab.icon className="h-5 w-5" />
               {tab.label}

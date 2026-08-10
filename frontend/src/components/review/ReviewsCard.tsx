@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useMyReviews } from '../../hooks/useReviews';
 import type { PendingReview, ReviewResponse } from '../../schemas/review.schema';
+import { planPrice } from '../../lib/format';
 import { PLAN_TYPE_LABELS } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -59,7 +60,7 @@ export function ReviewsCard() {
                   {item.otherParty.fullName}
                 </p>
                 <p className="text-sm text-neutral-600">
-                  {PLAN_TYPE_LABELS[item.planType]} · ₹{item.price} ·{' '}
+                  {PLAN_TYPE_LABELS[item.planType]} · {planPrice(item.planType, item.price)} ·{' '}
                   {formatDate(item.scheduledDate)}
                 </p>
               </div>

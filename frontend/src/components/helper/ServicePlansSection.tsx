@@ -13,17 +13,12 @@ import {
   useUpdateServicePlan,
 } from '../../hooks/useProfile';
 import type { ServicePlan } from '../../schemas/helper.schema';
+import { planPrice } from '../../lib/format';
 import {
   PLAN_TYPE_LABELS,
   PLAN_TYPE_VALUES,
   type PlanType,
 } from '../../types';
-
-function priceSuffix(planType: PlanType): string {
-  if (planType === 'HOURLY') return '/hr';
-  if (planType === 'MONTHLY') return '/mo';
-  return '/yr';
-}
 
 function PriceInput({
   label,
@@ -106,8 +101,7 @@ function PlanRow({ plan, onUpdated }: PlanRowProps) {
             {PLAN_TYPE_LABELS[plan.planType]}
           </span>
           <span className="text-sm text-neutral-700">
-            ₹{plan.price}
-            {priceSuffix(plan.planType)}
+            {planPrice(plan.planType, plan.price)}
           </span>
           <Badge className={plan.isActive ? 'bg-primary-100 text-primary-700' : 'bg-neutral-100 text-neutral-500'}>
             {plan.isActive ? 'Active' : 'Hidden'}

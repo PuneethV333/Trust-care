@@ -71,6 +71,7 @@ export default function SearchPage() {
   const [draft, setDraft] = useState<Draft>(initialDraft);
   const [applied, setApplied] = useState<Applied | null>(null);
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const query = useHelperSearch({ ...(applied ?? {}), page });
 
@@ -95,16 +96,40 @@ export default function SearchPage() {
 
   const results = query.data;
 
+  const activeFilterCount = [
+  applied?.type,
+  applied?.city,
+  applied?.minExperience,
+  applied?.planType,
+  applied?.day,
+  applied?.timeSlot,
+].filter(Boolean).length;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-800">Find a helper</h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Search verified maids and nannies near you.
-        </p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-800">Find a helper</h1>
+          <p className="mt-1 text-sm text-neutral-600">
+            Search verified maids and nannies near you.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          className="shrink-0 md:hidden"
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          {filtersOpen ? 'Hide' : 'Filters'}
+          {activeFilterCount > 0 && (
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-500 px-1.5 text-xs font-semibold text-white">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
       </div>
 
-      <Card className="p-4">
+      <Card className={`p-4 ${filtersOpen ? '' : 'hidden md:block'}`}>
         <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           <Select
             label="Service type"

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useBookingAction } from '../../hooks/useBookings';
+import { planPrice } from '../../lib/format';
 import {
   BOOKING_STATUS_LABELS,
   PLAN_TYPE_LABELS,
@@ -85,8 +86,8 @@ export function BookingCard({ booking }: { booking: BookingResponse }) {
             </p>
             {booking.servicePlan && (
               <p className="text-sm text-neutral-600">
-                {PLAN_TYPE_LABELS[booking.servicePlan.planType]} · ₹
-                {booking.servicePlan.price}/hr
+                {PLAN_TYPE_LABELS[booking.servicePlan.planType]} ·{' '}
+                {planPrice(booking.servicePlan.planType, booking.servicePlan.price)}
               </p>
             )}
           </div>

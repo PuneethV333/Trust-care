@@ -48,7 +48,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-dvh bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
           <Link to="/" className="flex items-center gap-2 font-semibold text-neutral-800">

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { HelperSearchItem } from '../../schemas/helper.schema';
 import { SERVICE_TYPE_LABELS } from '../../types';
+import { planPrice } from '../../lib/format';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
 import {
@@ -11,8 +12,10 @@ import {
 } from '../ui/icons';
 
 export function HelperCard({ helper }: { helper: HelperSearchItem }) {
-  const startingPrice = helper.servicePlans.length
-    ? Math.min(...helper.servicePlans.map((plan) => plan.price))
+  const cheapest = helper.servicePlans.length
+    ? helper.servicePlans.reduce((lowest, plan) =>
+        plan.price < lowest.price ? plan : lowest,
+      )
     : null;
 
   return (
@@ -54,9 +57,12 @@ export function HelperCard({ helper }: { helper: HelperSearchItem }) {
                 ? `${helper.ratingAvg.toFixed(1)} (${helper.ratingCount})`
                 : 'No reviews yet'}
             </span>
-            {startingPrice !== null && (
+            {cheapest && (
               <p className="text-sm text-neutral-800">
-                From <span className="font-semibold">₹{startingPrice}</span>/hr
+                From{' '}
+                <span className="font-semibold">
+                  {planPrice(cheapest.planType, cheapest.price)}
+                </span>
               </p>
             )}
           </div>
