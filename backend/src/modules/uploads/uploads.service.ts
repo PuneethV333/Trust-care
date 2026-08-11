@@ -6,7 +6,7 @@ import {
 } from '../../config/cloudinary.config';
 import { CloudinarySignatureDto } from './dto/upload.dto';
 
-const DEFAULT_FOLDER = 'helper4u';
+const DEFAULT_FOLDER = 'trustcare';
 
 @Injectable()
 export class UploadsService {
@@ -27,7 +27,7 @@ export class UploadsService {
       Object.keys(params)
         .sort()
         .map((key) => `${key}=${params[key]}`)
-        .join('&') + `&${config.apiSecret}`;
+        .join('&') + config.apiSecret;
 
     const signature = createHash('sha1').update(toSign).digest('hex');
 
