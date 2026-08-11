@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from "react";
+import { twMerge } from "tailwind-merge";
 
 export function Card({
   className,
@@ -7,9 +8,7 @@ export function Card({
   return (
     <div
       {...props}
-      className={`rounded-2xl bg-white shadow-sm ${
-        className ?? ""
-      }`}
+      className={twMerge("rounded-2xl bg-white shadow-sm", className)}
     />
   );
 }
