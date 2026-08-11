@@ -4,7 +4,7 @@ import { api } from './api';
 const UPLOAD_BASE_URL = 'https://api.cloudinary.com/v1_1/';
 
 export async function uploadToCloudinary(file: File): Promise<string> {
-  const raw = await api.get<unknown>('/uploads/signature');
+  const raw = await api.post<unknown>('/uploads/signature', {});
   const { timestamp, signature, apiKey, cloudName, folder } =
     cloudinarySignatureResponseSchema.parse(raw);
 
