@@ -59,7 +59,7 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 
 PORT=3000
-CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
 Firebase Admin SDK is initialized once in `config/firebase.config.ts` from these three vars

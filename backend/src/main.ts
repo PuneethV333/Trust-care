@@ -8,7 +8,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
-  app.enableCors({ origin: process.env.CLIENT_URL ?? 'http://localhost:5173' });
+  app.enableCors({
+    origin:
+      process.env.FRONTEND_URL ?? process.env.CLIENT_URL ?? 'http://localhost:5173',
+  });
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()

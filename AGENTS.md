@@ -43,7 +43,7 @@ Suggested verification order: lint → build. There is no CI and no required tes
 
 ## 2. Repo layout & current state
 
-- `backend/` — NestJS app. Entry `src/main.ts` (CORS from `CLIENT_URL`, global prefix `/api`,
+- `backend/` — NestJS app. Entry `src/main.ts` (CORS from `FRONTEND_URL`, global prefix `/api`,
   port `PORT ?? 3000`, helmet, Swagger at `/api/docs`). `PrismaModule` and `RedisModule` are
   global. Foundation is in place: Firebase Auth + Roles guards (global, `@Public()` / `@Roles()`
   opt-outs), global `ZodValidationPipe`, global throttler (100/60s default), `HttpExceptionFilter`.
@@ -74,7 +74,7 @@ Suggested verification order: lint → build. There is no CI and no required tes
 
 ### Ports & env
 
-- Backend: `PORT` (default 3000), `CLIENT_URL` (CORS). Env from `backend/.env` (gitignored);
+- Backend: `PORT` (default 3000), `FRONTEND_URL` (CORS origin). Env from `backend/.env` (gitignored);
   `backend/.env.example` is checked in with placeholders. Never commit `.env`.
 - Frontend: no env files yet; later phases add `.env.local` with `VITE_*` keys.
 - Older spec text says port 4000 — **the code uses 3000; trust the code.**
